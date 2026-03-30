@@ -1,0 +1,58 @@
+{
+  "stages": [
+    {
+      "id": "canteen_overview",
+      "goal": "了解受访者对南开大学食堂的整体印象、常去食堂/窗口及大致就餐频率。",
+      "slots": [
+        {
+          "name": "canteen_impression",
+          "type": "single",
+          "allow_overwrite": true,
+          "required": true
+        },
+        {
+          "name": "dining_frequency",
+          "type": "single",
+          "allow_overwrite": true,
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "food_experience",
+      "goal": "挖掘就餐体验中的痛点（排队、口味、品类、环境等）与最满意或最常点的方面。",
+      "slots": [
+        {
+          "name": "pain_points",
+          "type": "multiple",
+          "allow_overwrite": true,
+          "required": true
+        },
+        {
+          "name": "favorite_aspect",
+          "type": "single",
+          "allow_overwrite": true,
+          "required": false
+        }
+      ]
+    },
+    {
+      "id": "price_and_improvement",
+      "goal": "了解对食堂价格与性价比的看法，以及对改进方向的期望。",
+      "slots": [
+        {
+          "name": "price_feedback",
+          "type": "single",
+          "allow_overwrite": true,
+          "required": true
+        },
+        {
+          "name": "improvement_expectation",
+          "type": "single",
+          "allow_overwrite": true,
+          "required": true
+        }
+      ]
+    }
+  ]
+}
