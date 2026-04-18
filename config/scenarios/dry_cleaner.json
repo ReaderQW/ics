@@ -1,0 +1,40 @@
+{
+    "scenario_name": "干洗店服务调研",
+    "scenario_type": "dry_cleaner",
+    "greeting": "同学好！想了解一下你在校园干洗店的洗衣体验～",
+    "farewell": "谢谢你的分享！我们会帮助改进服务质量。",
+    "slots": [
+        {
+            "name": "turnaround_time",
+            "question": "你觉得洗衣取衣的速度怎么样？",
+            "followup_trigger": [
+                "慢",
+                "太慢",
+                "拖延",
+                "不准时"
+            ],
+            "followup_question": "一般需要等几天？你期望多久能取到？"
+        },
+        {
+            "name": "cleaning_quality",
+            "question": "衣物清洗干净吗？",
+            "followup_trigger": [
+                "没洗干净",
+                "有污渍",
+                "不满意",
+                "一般"
+            ],
+            "followup_question": "具体是哪些衣物或者哪些污渍没处理干净？"
+        },
+        {
+            "name": "price_fairness",
+            "question": "你觉得洗衣价格合理吗？",
+            "followup_trigger": [
+                "贵",
+                "不值",
+                "收费高"
+            ],
+            "followup_question": "你觉得什么价格比较合适？"
+        }
+    ]
+}

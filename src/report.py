@@ -1,61 +1,67 @@
-from __future__ import annotations
+from typing import Dict, Any, List
+from datetime import datetime
+from .llm_client import LLMClient
+from .models import InterviewSession
 
-import json
-from collections.abc import Iterator
-from typing import Any
+class ReportGenerator:
+    def __init__(self):
+        self.llm_client = LLMClient()
+    
+    def generate_report(self, session: InterviewSession, scenario_config) -> str:
+        """生成访谈报告"""
+        
+        # 构建报告内容
+        report = f"""# 消费满意度调研报告
 
-from src.llm_client import chat_completion, chat_completion_stream
-from src.models import ProductInfo
-from src.prompts import REPORT_POLISH_SYSTEM, build_report_user_payload
+## 基本信息
 
-DEFAULT_MARKDOWN_TEMPLATE = """# 就餐体验报告（草稿 — 仅含 Slot 事实）
+| 项目 | 内容 |
+|------|------|
+| 调研场景 | {scenario_config.scenario_name} |
+| 会话ID | {session.session_id} |
+| 开始时间 | {session.start_time.strftime('%Y-%m-%d %H:%M:%S')} |
+| 完成时间 | {session.end_time.strftime('%Y-%m-%d %H:%M:%S') if session.end_time else '进行中'} |
+| 访谈状态 | {'已完成' if session.is_complete else '未完成'} |
 
-**主题**: {{product_name}}
+## 反馈详情
 
-## 结构化访谈数据
-
-```json
-{{collected_json}}
-```
-
----
-*以下章节将由模型在严禁幻觉的前提下润色*
 """
-
-
-def fill_markdown_template(
-    template: str,
-    collected_data: dict[str, Any],
-    product_info: ProductInfo,
-) -> str:
-    return (
-        template.replace("{{product_name}}", product_info.name)
-        .replace("{{collected_json}}", json.dumps(collected_data, ensure_ascii=False, indent=2))
-    )
-
-
-def generate_report(
-    collected_data: dict[str, Any],
-    product_info: ProductInfo,
-    markdown_template: str | None = None,
-) -> tuple[str, bytes | None]:
-    """
-    返回 (report_md, report_pdf)。
-    PDF 可选：当前为 None，前端使用浏览器打印 Markdown 渲染区域即可。
-    """
-    tpl = markdown_template or DEFAULT_MARKDOWN_TEMPLATE
-    filled = fill_markdown_template(tpl, collected_data, product_info)
-    user = build_report_user_payload(filled, product_info.as_context_text())
-    polished = chat_completion(REPORT_POLISH_SYSTEM, user, temperature=0.4)
-    return polished, None
-
-
-def stream_generate_report(
-    collected_data: dict[str, Any],
-    product_info: ProductInfo,
-    markdown_template: str | None = None,
-) -> Iterator[str]:
-    tpl = markdown_template or DEFAULT_MARKDOWN_TEMPLATE
-    filled = fill_markdown_template(tpl, collected_data, product_info)
-    user = build_report_user_payload(filled, product_info.as_context_text())
-    yield from chat_completion_stream(REPORT_POLISH_SYSTEM, user, temperature=0.4)
+        
+        # 添加各槽位反馈
+        for slot_name, slot_value in session.slots_collected.items():
+            report += f"### {slot_name}\n\n"
+            report += f"- **原始回答**: {slot_value.raw_response}\n"
+            if slot_value.extracted_value:
+                report += f"- **关键信息**: {slot_value.extracted_value}\n"
+            if slot_value.need_followup:
+                report += f"- **已追问**: 是\n"
+            report += "\n"
+        
+        # 添加对话摘要
+        report += "## 对话摘要\n\n"
+        for msg in session.conversation_history:
+            role = "**用户**" if msg['role'] == 'user' else "**助手**"
+            report += f"{role}: {msg['content']}\n\n"
+        
+        # 使用LLM生成分析建议
+        if session.is_complete:
+            analysis = self.llm_client.generate_report({
+                "scenario_type": session.scenario_type,
+                "slots_collected": session.slots_collected,
+                "conversation_history": session.conversation_history
+            })
+            report += "\n## AI分析建议\n\n"
+            report += analysis
+        
+        return report
+    
+    def save_report(self, report: str, session_id: str) -> str:
+        """保存报告到文件"""
+        import os
+        os.makedirs("reports", exist_ok=True)
+        
+        filename = f"reports/report_{session_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(report)
+        
+        return filename

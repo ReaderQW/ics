@@ -1,0 +1,11 @@
+{
+  "session_id": "a5a7c293",
+  "scenario_type": "canteen",
+  "start_time": "2026-04-18 10:54:47.669967",
+  "end_time": null,
+  "state": "greeting",
+  "current_slot_index": 0,
+  "slots_collected": {},
+  "conversation_history": [],
+  "is_complete": false
+}

@@ -1,0 +1,101 @@
+{
+  "session_id": "925797f4",
+  "scenario_type": "canteen",
+  "start_time": "2026-04-13 10:54:49.360101",
+  "end_time": null,
+  "state": "followup",
+  "current_slot_index": 3,
+  "slots_collected": {
+    "price_satisfaction": {
+      "slot_name": "price_satisfaction",
+      "raw_response": "还不错吧",
+      "extracted_value": "都不是",
+      "need_followup": true,
+      "followup_asked": true
+    },
+    "taste_satisfaction": {
+      "slot_name": "taste_satisfaction",
+      "raw_response": "不满意",
+      "extracted_value": "都不满意",
+      "need_followup": true,
+      "followup_asked": true
+    },
+    "variety_satisfaction": {
+      "slot_name": "variety_satisfaction",
+      "raw_response": "不丰富",
+      "extracted_value": "你看着办",
+      "need_followup": true,
+      "followup_asked": true
+    },
+    "waiting_time": {
+      "slot_name": "waiting_time",
+      "raw_response": "不能",
+      "extracted_value": null,
+      "need_followup": true,
+      "followup_asked": false
+    }
+  },
+  "conversation_history": [
+    {
+      "role": "assistant",
+      "content": "同学你好！我是校园消费调研助手，想了解一下你对食堂的用餐体验～"
+    },
+    {
+      "role": "user",
+      "content": "还不错吧"
+    },
+    {
+      "role": "assistant",
+      "content": "你觉得主要是分量少还是单品定价高呢？"
+    },
+    {
+      "role": "user",
+      "content": "都不是"
+    },
+    {
+      "role": "assistant",
+      "content": "你对食堂菜品的口味满意吗？"
+    },
+    {
+      "role": "user",
+      "content": "不满意"
+    },
+    {
+      "role": "assistant",
+      "content": "具体是哪个档口或者哪道菜让你不满意呢？"
+    },
+    {
+      "role": "user",
+      "content": "都不满意"
+    },
+    {
+      "role": "assistant",
+      "content": "你觉得食堂菜品种类丰富吗？"
+    },
+    {
+      "role": "user",
+      "content": "不丰富"
+    },
+    {
+      "role": "assistant",
+      "content": "你希望增加哪些类型的菜品呢？"
+    },
+    {
+      "role": "user",
+      "content": "你看着办"
+    },
+    {
+      "role": "assistant",
+      "content": "排队等候时间你能接受吗？"
+    },
+    {
+      "role": "user",
+      "content": "不能"
+    },
+    {
+      "role": "assistant",
+      "content": "高峰期大概要等多久？你觉得应该怎么改进？"
+    }
+  ],
+  "is_complete": false
+}

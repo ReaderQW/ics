@@ -1,126 +1,118 @@
-from __future__ import annotations
-
-import json
 import os
-import re
-import time
-from collections.abc import Iterator
-from typing import Any
-
+import openai
+from typing import Optional, Dict, Any
 from dotenv import load_dotenv
-from openai import OpenAI
 
 load_dotenv()
 
-
-def get_client() -> OpenAI | None:
-    key = os.getenv("OPENAI_API_KEY", "").strip()
-    if not key or key.startswith("sk-your"):
-        return None
-    base = os.getenv("OPENAI_BASE_URL", "").strip() or None
-    return OpenAI(api_key=key, base_url=base)
-
-
-def get_model() -> str:
-    return os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip() or "gpt-4o-mini"
-
-
-def mock_llm_enabled() -> bool:
-    return os.getenv("MOCK_LLM", "").lower() in ("1", "true", "yes")
-
-
-def chat_completion(system: str, user: str, temperature: float = 0.3) -> str:
-    if mock_llm_enabled() or get_client() is None:
-        return _mock_response(system, user)
-    client = get_client()
-    assert client is not None
-    r = client.chat.completions.create(
-        model=get_model(),
-        temperature=temperature,
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user", "content": user},
-        ],
-    )
-    return (r.choices[0].message.content or "").strip()
-
-
-def chat_completion_stream(
-    system: str,
-    user: str,
-    temperature: float = 0.3,
-    chunk_size: int = 8,
-) -> Iterator[str]:
-    """面向用户可见文案的流式输出（逐段 yield 字符串）。"""
-    if mock_llm_enabled() or get_client() is None:
-        text = _mock_response(system, user)
-        for i in range(0, len(text), chunk_size):
-            time.sleep(0.012)
-            yield text[i : i + chunk_size]
-        return
-    client = get_client()
-    assert client is not None
-    stream = client.chat.completions.create(
-        model=get_model(),
-        temperature=temperature,
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user", "content": user},
-        ],
-        stream=True,
-    )
-    for chunk in stream:
-        delta = chunk.choices[0].delta
-        if delta and delta.content:
-            yield delta.content
-
-
-def extract_json_object(text: str) -> dict[str, Any]:
-    text = text.strip()
-    m = re.search(r"\{[\s\S]*\}", text)
-    if not m:
-        raise ValueError("响应中未找到 JSON 对象")
-    return json.loads(m.group())
-
-
-def _mock_response(system: str, user: str) -> str:
-    if "严格输出 JSON" in system or "JSON" in system[:200]:
-        return json.dumps(
-            {
-                "extracted_slots": [
-                    {
-                        "name": "mock_slot",
-                        "value": user[:80],
-                        "confidence": 0.5,
-                        "is_new": True,
-                    }
-                ],
-                "evaluation": {
-                    "quality": "vague",
-                    "engagement": "medium",
-                    "intent_type": "answer",
-                    "user_exit_intent": False,
-                },
-                "advice": {
-                    "should_probe": True,
-                    "probe_focus": "mock_slot",
-                    "should_advance_suggestion": False,
-                },
-            },
-            ensure_ascii=False,
-        )
-    if "就餐体验报告" in system or "用户体验报告" in system or "润色" in system:
-        return (
-            "## 1. 总体评价\n\n"
-            "- （演示模式）基于结构化 Slot 的占位润色。\n\n"
-            "## 2. 核心维度分析\n\n"
-            "### 维度 A\n\n"
-            "- 待接入真实模型后根据 Slot 生成。\n\n"
-            "## 3. 改进建议\n\n"
-            "- 请配置 OPENAI_API_KEY 后重新生成报告。\n"
-        )
-    return (
-        "（演示模式）感谢您的回复。能再具体说说您的感受吗？"
-        if "PROBE" in user or "追问" in system
-        else "（演示模式）好的，我们继续下一个话题。"
-    )
+class LLMClient:
+    def __init__(self):
+        self.api_key = os.getenv("LLM_API_KEY")
+        self.base_url = os.getenv("LLM_BASE_URL", "https://api.siliconflow.cn/v1")
+        self.model = os.getenv("LLM_MODEL", "deepseek-ai/DeepSeek-V3")
+        
+        if self.api_key:
+            openai.api_key = self.api_key
+            openai.base_url = self.base_url
+    
+    def chat(self, messages: list, temperature: float = 0.7) -> str:
+        """发送对话请求"""
+        try:
+            response = openai.ChatCompletion.create(
+                model=self.model,
+                messages=messages,
+                temperature=temperature
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"LLM调用失败: {e}")
+            return ""
+    
+    def analyze_intent(self, user_input: str, followup_triggers: list) -> Dict[str, Any]:
+        """分析用户意图，判断是否需要追问"""
+        trigger_words = [w for w in followup_triggers if w in user_input]
+        
+        if trigger_words:
+            return {
+                "need_followup": True,
+                "triggered_by": trigger_words,
+                "confidence": 0.8
+            }
+        
+        # 使用LLM进行更精细的判断
+        prompt = f"""
+        分析用户对某个问题的回答，判断是否表达了对现状的不满或负面情绪。
+        用户回答："{user_input}"
+        
+        如果用户表达了不满、抱怨或负面评价，返回 {{"negative": true, "reason": "简短原因"}}
+        如果用户表示满意或中性，返回 {{"negative": false, "reason": ""}}
+        """
+        
+        try:
+            response = self.chat([
+                {"role": "system", "content": "你是一个情绪分析助手，只返回JSON格式。"},
+                {"role": "user", "content": prompt}
+            ])
+            import json
+            result = json.loads(response)
+            return {
+                "need_followup": result.get("negative", False),
+                "triggered_by": [],
+                "confidence": 0.7
+            }
+        except:
+            return {"need_followup": False, "triggered_by": [], "confidence": 0.5}
+    
+    def generate_report(self, session_data: dict) -> str:
+        """生成访谈报告"""
+        prompt = f"""
+        请根据以下访谈数据，生成一份结构化的消费满意度调研报告。
+        
+        场景类型：{session_data.get('scenario_type', '未知')}
+        收集到的反馈：
+        {self._format_slots(session_data.get('slots_collected', {}))}
+        
+        对话历史摘要：
+        {self._format_history(session_data.get('conversation_history', []))}
+        
+        请按以下格式输出Markdown报告：
+        ## 调研概览
+        ### 基本信息
+        - 调研场景：[场景名称]
+        - 完成时间：[时间]
+        
+        ## 满意度分析
+        ### 各维度反馈详情
+        [逐条列出各槽位的反馈和追问内容]
+        
+        ## 核心问题总结
+        [总结3-5个关键问题]
+        
+        ## 改进建议
+        [针对每个问题提出具体建议]
+        """
+        
+        response = self.chat([
+            {"role": "system", "content": "你是一个专业的数据分析报告生成助手。"},
+            {"role": "user", "content": prompt}
+        ])
+        
+        return response
+    
+    def _format_slots(self, slots: dict) -> str:
+        lines = []
+        for name, value in slots.items():
+            if hasattr(value, 'raw_response'):
+                lines.append(f"- {name}: {value.raw_response}")
+                if hasattr(value, 'extracted_value') and value.extracted_value:
+                    lines.append(f"  提炼: {value.extracted_value}")
+        return "\n".join(lines) if lines else "暂无详细反馈"
+    
+    def _format_history(self, history: list) -> str:
+        if not history:
+            return "暂无对话记录"
+        lines = []
+        for msg in history[-6:]:  # 只取最后6条
+            role = "用户" if msg.get('role') == 'user' else "助手"
+            lines.append(f"{role}: {msg.get('content', '')[:100]}")
+        return "\n".join(lines)

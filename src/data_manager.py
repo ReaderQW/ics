@@ -1,89 +1,55 @@
-from __future__ import annotations
+import json
+import uuid
+from typing import Dict, Any, Optional, List
+from datetime import datetime
+from .models import InterviewSession
 
-from typing import Any
-
-from src.models import SlotDefinition, SlotResult
-
-
-def update_collected_data(
-    collected_data: dict[str, Any],
-    extracted_slots: list[SlotResult],
-    current_slots: list[SlotDefinition],
-) -> dict[str, Any]:
-    """根据 allow_overwrite 与 slot type 更新归档。"""
-    slot_map = {s.name: s for s in current_slots}
-    out = dict(collected_data)
-
-    for item in extracted_slots:
-        if item.name not in slot_map:
-            continue
-        spec = slot_map[item.name]
-        if item.confidence < 0.35:
-            continue
-
-        existing = out.get(item.name)
-        if existing is not None and not spec.allow_overwrite:
-            continue
-
-        if spec.type == "multiple":
-            prev = out.get(item.name)
-            if prev is None:
-                out[item.name] = [item.value]
-            elif isinstance(prev, list):
-                merged = list(prev)
-                if item.value not in merged:
-                    merged.append(item.value)
-                out[item.name] = merged
-            else:
-                out[item.name] = [prev, item.value] if prev != item.value else [prev]
-        else:
-            out[item.name] = item.value
-
-    return out
-
-
-def stage_coverage_ratio(
-    collected_data: dict[str, Any],
-    current_slots: list[SlotDefinition],
-) -> tuple[int, int]:
-    """返回 (已满足 required 的数量, required 总数)。"""
-    required = [s for s in current_slots if s.required]
-    if not required:
-        return (1, 1)
-    ok = 0
-    for s in required:
-        v = collected_data.get(s.name)
-        if v is None:
-            continue
-        if s.type == "multiple":
-            if isinstance(v, list) and len(v) > 0:
-                ok += 1
-        else:
-            if v != "" and v is not None:
-                ok += 1
-    return (ok, len(required))
-
-
-def all_required_filled(
-    collected_data: dict[str, Any],
-    current_slots: list[SlotDefinition],
-) -> bool:
-    ok, total = stage_coverage_ratio(collected_data, current_slots)
-    return ok >= total and total > 0
-
-
-def first_missing_required_slot(
-    collected_data: dict[str, Any],
-    current_slots: list[SlotDefinition],
-) -> str | None:
-    for s in current_slots:
-        if not s.required:
-            continue
-        v = collected_data.get(s.name)
-        if s.type == "multiple":
-            if not isinstance(v, list) or len(v) == 0:
-                return s.name
-        else:
-            if v is None or v == "":
-                return s.name
-    return None
+class DataManager:
+    def __init__(self, storage_dir: str = "data/sessions"):
+        self.storage_dir = storage_dir
+        import os
+        os.makedirs(storage_dir, exist_ok=True)
+    
+    def create_session(self, scenario_type: str) -> str:
+        """创建新的访谈会话"""
+        session_id = str(uuid.uuid4())[:8]
+        session = InterviewSession(
+            session_id=session_id,
+            scenario_type=scenario_type
+        )
+        self._save_session(session)
+        return session_id
+    
+    def get_session(self, session_id: str) -> Optional[InterviewSession]:
+        """获取会话数据"""
+        import os
+        filepath = f"{self.storage_dir}/{session_id}.json"
+        
+        if not os.path.exists(filepath):
+            return None
+        
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        return InterviewSession(**data)
+    
+    def update_session(self, session: InterviewSession):
+        """更新会话数据"""
+        self._save_session(session)
+    
+    def _save_session(self, session: InterviewSession):
+        """保存会话到文件"""
+        filepath = f"{self.storage_dir}/{session.session_id}.json"
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(session.model_dump(), f, ensure_ascii=False, indent=2, default=str)
+    
+    def get_all_sessions(self) -> List[InterviewSession]:
+        """获取所有会话"""
+        import os
+        sessions = []
+        for filename in os.listdir(self.storage_dir):
+            if filename.endswith('.json'):
+                with open(f"{self.storage_dir}/{filename}", 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    sessions.append(InterviewSession(**data))
+        return sessions

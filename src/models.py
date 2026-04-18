@@ -1,82 +1,59 @@
-from __future__ import annotations
-
-from enum import Enum
-from typing import Any, Literal
-
+# src/models.py
 from pydantic import BaseModel, Field
+from typing import Optional, Dict, Any, List
+from enum import Enum
+from datetime import datetime
+import json
+
+class InterviewState(str, Enum):
+    GREETING = "greeting"
+    ASKING = "asking"
+    FOLLOWUP = "followup"
+    COMPLETED = "completed"
+    FAREWELL = "farewell"
+
+class SlotValue(BaseModel):
+    slot_name: str
+    raw_response: str
+    extracted_value: Optional[str] = None
+    need_followup: bool = False
+    followup_asked: bool = False
+
+class InterviewSession(BaseModel):
+    session_id: str
+    scenario_type: str
+    start_time: datetime = Field(default_factory=datetime.now)
+    end_time: Optional[datetime] = None
+    state: InterviewState = InterviewState.GREETING  # 默认值
+    current_slot_index: int = 0
+    slots_collected: Dict[str, SlotValue] = Field(default_factory=dict)
+    conversation_history: List[Dict[str, str]] = Field(default_factory=list)
+    is_complete: bool = False
+
+class ScenarioConfig(BaseModel):
+    scenario_name: str
+    scenario_type: str
+    greeting: str
+    farewell: str
+    slots: List[Dict[str, Any]]
 
 
-class ConversationState(str, Enum):
-    INITIALIZING = "INITIALIZING"
-    INTERVIEWING = "INTERVIEWING"
-    PROBING = "PROBING"
-    OFF_TOPIC_HANDLING = "OFF_TOPIC_HANDLING"
-    WRAPPING_UP = "WRAPPING_UP"
-    FINISHED = "FINISHED"
+# 自定义JSON编码器，处理枚举类型
+class CustomEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Enum):
+            return obj.value
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
 
 
-class LogicSignal(str, Enum):
-    PROBE = "PROBE"
-    NEXT_STAGE = "NEXT_STAGE"
-    OFF_TOPIC_BACK = "OFF_TOPIC_BACK"
-    WRAP_CONFIRM = "WRAP_CONFIRM"
-    OPENING = "OPENING"
-
-
-class SlotDefinition(BaseModel):
-    name: str
-    type: Literal["single", "multiple"]
-    allow_overwrite: bool = False
-    required: bool = True
-
-
-class InterviewStage(BaseModel):
-    id: str
-    goal: str
-    slots: list[SlotDefinition]
-
-
-class InterviewOutline(BaseModel):
-    stages: list[InterviewStage]
-
-
-class ProductInfo(BaseModel):
-    name: str = ""
-    summary: str = ""
-    target_users: str = ""
-    version: str = ""
-
-    def as_context_text(self) -> str:
-        parts = [
-            f"产品名称: {self.name}",
-            f"简介: {self.summary}",
-            f"目标用户: {self.target_users}",
-            f"版本: {self.version}",
-        ]
-        return "\n".join(parts)
-
-
-class SlotResult(BaseModel):
-    name: str
-    value: Any
-    confidence: float = Field(ge=0.0, le=1.0)
-    is_new: bool = True
-
-
-class EvaluationResult(BaseModel):
-    quality: Literal["clear", "vague"]
-    engagement: Literal["high", "medium", "low"]
-    intent_type: Literal["answer", "off_topic", "user_question", "refusal"]
-    user_exit_intent: bool = False
-
-
-class AdviceResult(BaseModel):
-    should_probe: bool = False
-    probe_focus: str | None = None
-    should_advance_suggestion: bool = False
-
-
-class AnalyzerOutput(BaseModel):
-    extracted_slots: list[SlotResult] = Field(default_factory=list)
-    evaluation: EvaluationResult
-    advice: AdviceResult
+def decode_session(data: dict) -> dict:
+    """解码会话数据，将字符串状态转换回枚举"""
+    if 'state' in data and isinstance(data['state'], str):
+        data['state'] = InterviewState(data['state'])
+    if 'start_time' in data and isinstance(data['start_time'], str):
+        data['start_time'] = datetime.fromisoformat(data['start_time'])
+    if 'end_time' in data and data['end_time'] and isinstance(data['end_time'], str):
+        data['end_time'] = datetime.fromisoformat(data['end_time'])
+    return data

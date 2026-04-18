@@ -1,59 +1,116 @@
-from __future__ import annotations
+# src/controller.py
+from typing import Dict, Any, Optional
+from .models import InterviewSession, InterviewState, SlotValue
+from .analyzer import Analyzer
+from .llm_client import LLMClient
 
-from src.models import AdviceResult, ConversationState, EvaluationResult, LogicSignal
-
-
-MAX_STAGE_TURNS = 3
-MAX_PROBE_CHAIN = 2
-
-
-def update_state(
-    current_state: ConversationState,
-    evaluation: EvaluationResult,
-    advice: AdviceResult,
-    stage_turn_count: int,
-    probe_depth: int,
-    current_stage_idx: int,
-    total_stages: int,
-    stage_required_filled: bool,
-) -> tuple[ConversationState, LogicSignal]:
-    """
-    信号优先级：
-    P0 Exit -> WRAPPING_UP
-    P1 Anomaly -> OFF_TOPIC_HANDLING + OFF_TOPIC_BACK
-    P2 Probe -> PROBING + PROBE
-    P3 Advance -> NEXT_STAGE 或最后一阶段 -> WRAPPING_UP
-    默认：同阶段继续 INTERVIEWING + PROBE（下一问）
-    """
-    if evaluation.user_exit_intent:
-        return ConversationState.WRAPPING_UP, LogicSignal.WRAP_CONFIRM
-
-    if current_state in (ConversationState.INTERVIEWING, ConversationState.PROBING):
-        if evaluation.intent_type in ("off_topic", "user_question"):
-            return ConversationState.OFF_TOPIC_HANDLING, LogicSignal.OFF_TOPIC_BACK
-
-    can_probe = stage_turn_count < MAX_STAGE_TURNS and probe_depth < MAX_PROBE_CHAIN
-    need_probe = (
-        (evaluation.quality == "vague" or advice.should_probe)
-        and can_probe
-        and not stage_required_filled
-    )
-
-    if need_probe:
-        return ConversationState.PROBING, LogicSignal.PROBE
-
-    should_advance = (
-        stage_required_filled
-        or stage_turn_count >= MAX_STAGE_TURNS
-        or advice.should_advance_suggestion
-    )
-
-    if should_advance:
-        if current_stage_idx >= total_stages - 1:
-            return ConversationState.WRAPPING_UP, LogicSignal.WRAP_CONFIRM
-        return ConversationState.INTERVIEWING, LogicSignal.NEXT_STAGE
-
-    if current_state == ConversationState.PROBING:
-        return ConversationState.INTERVIEWING, LogicSignal.PROBE
-
-    return ConversationState.INTERVIEWING, LogicSignal.PROBE
+class Controller:
+    def __init__(self, config):
+        self.config = config
+        self.analyzer = Analyzer()
+        self.llm_client = LLMClient()
+    
+    def get_next_question(self, session: InterviewSession) -> Optional[str]:
+        """根据当前状态获取下一个问题"""
+        # 防御性检查：确保state是InterviewState类型
+        if isinstance(session.state, str):
+            session.state = InterviewState(session.state)
+        
+        if session.state == InterviewState.GREETING:
+            session.state = InterviewState.ASKING
+            return self.config.greeting
+        
+        elif session.state == InterviewState.ASKING:
+            if session.current_slot_index < len(self.config.slots):
+                slot = self.config.slots[session.current_slot_index]
+                return slot.get("question")
+            else:
+                session.state = InterviewState.COMPLETED
+                return self._get_completion_message()
+        
+        elif session.state == InterviewState.FOLLOWUP:
+            # 返回追问问题
+            if session.current_slot_index < len(self.config.slots):
+                slot = self.config.slots[session.current_slot_index]
+                return slot.get("followup_question")
+        
+        elif session.state == InterviewState.COMPLETED:
+            session.state = InterviewState.FAREWELL
+            return self.config.farewell
+        
+        return None
+    
+    def process_response(self, session: InterviewSession, user_input: str) -> Dict[str, Any]:
+        """处理用户响应"""
+        # 防御性检查：确保state是InterviewState类型
+        if isinstance(session.state, str):
+            session.state = InterviewState(session.state)
+        
+        result = {
+            "next_question": None,
+            "slot_updated": False,
+            "need_followup": False
+        }
+        
+        # 保存对话历史
+        session.conversation_history.append({"role": "user", "content": user_input})
+        
+        if session.state == InterviewState.ASKING:
+            current_slot = self.config.slots[session.current_slot_index]
+            slot_name = current_slot.get("name")
+            
+            # 存储原始回答
+            slot_value = SlotValue(
+                slot_name=slot_name,
+                raw_response=user_input
+            )
+            
+            # 检查是否需要追问
+            triggers = current_slot.get("followup_trigger", [])
+            need_followup = self.analyzer.needs_followup(user_input, triggers)
+            
+            if need_followup and current_slot.get("followup_question"):
+                slot_value.need_followup = True
+                session.slots_collected[slot_name] = slot_value
+                session.state = InterviewState.FOLLOWUP
+                result["need_followup"] = True
+                result["next_question"] = current_slot.get("followup_question")
+            else:
+                # 提取关键信息
+                extracted = self.analyzer.extract_key_info(user_input, slot_name)
+                if extracted:
+                    slot_value.extracted_value = extracted
+                
+                session.slots_collected[slot_name] = slot_value
+                session.current_slot_index += 1
+                result["slot_updated"] = True
+                result["next_question"] = self.get_next_question(session)
+        
+        elif session.state == InterviewState.FOLLOWUP:
+            # 处理追问的回答
+            current_slot = self.config.slots[session.current_slot_index]
+            slot_name = current_slot.get("name")
+            
+            if slot_name in session.slots_collected:
+                session.slots_collected[slot_name].extracted_value = user_input
+                session.slots_collected[slot_name].followup_asked = True
+            
+            # 移动到下一个槽位
+            session.current_slot_index += 1
+            session.state = InterviewState.ASKING
+            result["next_question"] = self.get_next_question(session)
+        
+        elif session.state == InterviewState.COMPLETED:
+            session.is_complete = True
+            result["next_question"] = self.get_next_question(session)
+        
+        # 保存助手的回复
+        if result["next_question"]:
+            session.conversation_history.append(
+                {"role": "assistant", "content": result["next_question"]}
+            )
+        
+        return result
+    
+    def _get_completion_message(self) -> str:
+        return "太好了！我们已经收集了足够的反馈信息。"

@@ -1,0 +1,52 @@
+{
+    "scenario_name": "食堂消费调研",
+    "scenario_type": "canteen",
+    "greeting": "同学你好！我是校园消费调研助手，想了解一下你对食堂的用餐体验～",
+    "farewell": "感谢你的宝贵意见！我们会将反馈整理后提交给食堂管理部门。",
+    "slots": [
+        {
+            "name": "price_satisfaction",
+            "question": "你觉得食堂的价格怎么样？",
+            "followup_trigger": [
+                "贵",
+                "太贵",
+                "偏高",
+                "不便宜"
+            ],
+            "followup_question": "你觉得主要是分量少还是单品定价高呢？"
+        },
+        {
+            "name": "taste_satisfaction",
+            "question": "你对食堂菜品的口味满意吗？",
+            "followup_trigger": [
+                "不好吃",
+                "难吃",
+                "一般",
+                "有待改进"
+            ],
+            "followup_question": "具体是哪个档口或者哪道菜让你不满意呢？"
+        },
+        {
+            "name": "variety_satisfaction",
+            "question": "你觉得食堂菜品种类丰富吗？",
+            "followup_trigger": [
+                "少",
+                "不多",
+                "单一",
+                "重复"
+            ],
+            "followup_question": "你希望增加哪些类型的菜品呢？"
+        },
+        {
+            "name": "waiting_time",
+            "question": "排队等候时间你能接受吗？",
+            "followup_trigger": [
+                "太久",
+                "太长",
+                "慢",
+                "浪费时间"
+            ],
+            "followup_question": "高峰期大概要等多久？你觉得应该怎么改进？"
+        }
+    ]
+}
