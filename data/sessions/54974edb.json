@@ -1,0 +1,77 @@
+{
+  "session_id": "54974edb",
+  "scenario_type": "canteen",
+  "shop_name": "一食堂",
+  "start_time": "2026-04-20T20:15:30.590629",
+  "end_time": null,
+  "state": "asking",
+  "current_slot_index": 2,
+  "slots_collected": {
+    "price_satisfaction": {
+      "slot_name": "price_satisfaction",
+      "raw_response": "一食堂在哪",
+      "extracted_value": null,
+      "need_followup": false,
+      "followup_asked": false
+    },
+    "taste_satisfaction": {
+      "slot_name": "taste_satisfaction",
+      "raw_response": "你还没回答我呢",
+      "extracted_value": null,
+      "need_followup": false,
+      "followup_asked": false
+    }
+  },
+  "conversation_history": [
+    {
+      "role": "assistant",
+      "content": "同学你好！我是校园消费调研助手，想了解一下你对一食堂的用餐体验～"
+    },
+    {
+      "role": "assistant",
+      "content": "你觉得一食堂的价格怎么样？"
+    },
+    {
+      "role": "user",
+      "content": "你是谁"
+    },
+    {
+      "role": "user",
+      "content": "还可以"
+    },
+    {
+      "role": "assistant",
+      "content": "回答过于简短，未提供具体评价依据，可以再具体一点吗？\n\n你觉得一食堂的价格怎么样？"
+    },
+    {
+      "role": "user",
+      "content": "今天天气怎么样"
+    },
+    {
+      "role": "assistant",
+      "content": "我们正在讨论一食堂的价格，您觉得怎么样呢？\n\n你觉得一食堂的价格怎么样？"
+    },
+    {
+      "role": "user",
+      "content": "一食堂在哪"
+    },
+    {
+      "role": "assistant",
+      "content": "你对一食堂菜品的口味满意吗？"
+    },
+    {
+      "role": "user",
+      "content": "你还没回答我呢"
+    },
+    {
+      "role": "assistant",
+      "content": "你觉得一食堂菜品种类丰富吗？"
+    }
+  ],
+  "confirmation_summary": null,
+  "awaiting_correction": false,
+  "correction_notes": [],
+  "invalid_input_count": 0,
+  "report_id": null,
+  "is_complete": false
+}

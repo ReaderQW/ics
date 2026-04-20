@@ -1,12 +1,13 @@
 {
     "scenario_name": "干洗店服务调研",
     "scenario_type": "dry_cleaner",
-    "greeting": "同学好！想了解一下你在校园干洗店的洗衣体验～",
-    "farewell": "谢谢你的分享！我们会帮助改进服务质量。",
+    "shop_options": ["鑫淼洗衣店"],
+    "greeting": "同学好！想了解一下你在{shop_name}的洗衣体验～",
+    "farewell": "谢谢你的分享！我们会把意见同步给{shop_name}，帮助改进服务质量。",
     "slots": [
         {
             "name": "turnaround_time",
-            "question": "你觉得洗衣取衣的速度怎么样？",
+            "question": "你觉得{shop_name}洗衣取衣的速度怎么样？",
             "followup_trigger": [
                 "慢",
                 "太慢",
@@ -17,7 +18,7 @@
         },
         {
             "name": "cleaning_quality",
-            "question": "衣物清洗干净吗？",
+            "question": "你觉得{shop_name}衣物清洗干净吗？",
             "followup_trigger": [
                 "没洗干净",
                 "有污渍",
@@ -28,7 +29,7 @@
         },
         {
             "name": "price_fairness",
-            "question": "你觉得洗衣价格合理吗？",
+            "question": "你觉得{shop_name}洗衣价格合理吗？",
             "followup_trigger": [
                 "贵",
                 "不值",

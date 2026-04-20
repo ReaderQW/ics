@@ -1,0 +1,131 @@
+{
+  "session_id": "d05b35a8",
+  "scenario_type": "canteen",
+  "shop_name": "一食堂",
+  "start_time": "2026-04-20T19:08:20.468647",
+  "end_time": "2026-04-20T19:11:24.291268",
+  "state": "farewell",
+  "current_slot_index": 4,
+  "slots_collected": {
+    "price_satisfaction": {
+      "slot_name": "price_satisfaction",
+      "raw_response": "你哪位",
+      "extracted_value": "你是谁",
+      "need_followup": true,
+      "followup_asked": true
+    },
+    "taste_satisfaction": {
+      "slot_name": "taste_satisfaction",
+      "raw_response": "行",
+      "extracted_value": "行",
+      "need_followup": true,
+      "followup_asked": true
+    },
+    "variety_satisfaction": {
+      "slot_name": "variety_satisfaction",
+      "raw_response": "行",
+      "extracted_value": "行",
+      "need_followup": true,
+      "followup_asked": true
+    },
+    "waiting_time": {
+      "slot_name": "waiting_time",
+      "raw_response": "行",
+      "extracted_value": "行",
+      "need_followup": true,
+      "followup_asked": true
+    }
+  },
+  "conversation_history": [
+    {
+      "role": "assistant",
+      "content": "同学你好！我是校园消费调研助手，想了解一下你对一食堂的用餐体验～"
+    },
+    {
+      "role": "user",
+      "content": "你哪位"
+    },
+    {
+      "role": "assistant",
+      "content": "你觉得主要是分量少还是单品定价高呢？"
+    },
+    {
+      "role": "user",
+      "content": "你是谁"
+    },
+    {
+      "role": "assistant",
+      "content": "你对一食堂菜品的口味满意吗？"
+    },
+    {
+      "role": "user",
+      "content": "行"
+    },
+    {
+      "role": "assistant",
+      "content": "具体是哪个档口或者哪道菜让你不满意呢？"
+    },
+    {
+      "role": "user",
+      "content": "行"
+    },
+    {
+      "role": "assistant",
+      "content": "你觉得一食堂菜品种类丰富吗？"
+    },
+    {
+      "role": "user",
+      "content": "行"
+    },
+    {
+      "role": "assistant",
+      "content": "你希望增加哪些类型的菜品呢？"
+    },
+    {
+      "role": "user",
+      "content": "行"
+    },
+    {
+      "role": "assistant",
+      "content": "在一食堂排队等候时间你能接受吗？"
+    },
+    {
+      "role": "user",
+      "content": "行"
+    },
+    {
+      "role": "assistant",
+      "content": "高峰期大概要等多久？你觉得应该怎么改进？"
+    },
+    {
+      "role": "user",
+      "content": "行"
+    },
+    {
+      "role": "assistant",
+      "content": "### 观点确认摘要\n1. 你觉得一食堂的价格怎么样？：你是谁\n2. 你对一食堂菜品的口味满意吗？：行\n3. 你觉得一食堂菜品种类丰富吗？：行\n4. 在一食堂排队等候时间你能接受吗？：行\n\n请确认以上总结是否准确。\n- 回复“确认”结束访谈\n- 回复“需要修改”补充观点"
+    },
+    {
+      "role": "user",
+      "content": "行"
+    },
+    {
+      "role": "assistant",
+      "content": "如果你确认摘要准确，请回复“确认”；如果需要修改，请回复“需要修改”。"
+    },
+    {
+      "role": "user",
+      "content": "确认"
+    },
+    {
+      "role": "assistant",
+      "content": "感谢你的宝贵意见！我们会将反馈整理后提交给一食堂管理方。"
+    }
+  ],
+  "confirmation_summary": "### 观点确认摘要\n1. 你觉得一食堂的价格怎么样？：你是谁\n2. 你对一食堂菜品的口味满意吗？：行\n3. 你觉得一食堂菜品种类丰富吗？：行\n4. 在一食堂排队等候时间你能接受吗？：行",
+  "awaiting_correction": false,
+  "correction_notes": [],
+  "invalid_input_count": 0,
+  "report_id": "4ddbc247",
+  "is_complete": true
+}

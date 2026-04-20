@@ -62,3 +62,43 @@ class SessionPersistence:
             os.remove(filepath)
             return True
         return False
+
+    def cleanup_incomplete_sessions(self, max_age_hours: int = 24) -> int:
+        """清理长时间未完成、且未生成报告的会话。"""
+        if max_age_hours <= 0:
+            max_age_hours = 24
+
+        threshold = datetime.now().timestamp() - max_age_hours * 3600
+        deleted = 0
+
+        if not os.path.exists(self.storage_dir):
+            return 0
+
+        for filename in os.listdir(self.storage_dir):
+            if not filename.endswith(".json"):
+                continue
+
+            filepath = os.path.join(self.storage_dir, filename)
+            try:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+
+                start_time = data.get("start_time")
+                start_ts = None
+                if isinstance(start_time, str):
+                    try:
+                        start_ts = datetime.fromisoformat(start_time).timestamp()
+                    except Exception:
+                        start_ts = os.path.getmtime(filepath)
+                else:
+                    start_ts = os.path.getmtime(filepath)
+
+                is_complete = bool(data.get("is_complete", False))
+                has_report = bool(data.get("report_id"))
+                if (not is_complete) and (not has_report) and start_ts < threshold:
+                    os.remove(filepath)
+                    deleted += 1
+            except Exception:
+                continue
+
+        return deleted

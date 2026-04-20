@@ -1,12 +1,13 @@
 {
     "scenario_name": "便利店消费调研",
     "scenario_type": "convenience_store",
-    "greeting": "同学好！想了解一下你对校园便利店（711等）的购物体验～",
-    "farewell": "感谢反馈！我们会把你的建议转达给便利店运营方。",
+    "shop_options": ["7-Eleven", "物美", "图书馆超市"],
+    "greeting": "同学好！想了解一下你对{shop_name}的购物体验～",
+    "farewell": "感谢反馈！我们会把你的建议转达给{shop_name}运营方。",
     "slots": [
         {
             "name": "price_level",
-            "question": "你觉得便利店商品价格怎么样？",
+            "question": "你觉得{shop_name}商品价格怎么样？",
             "followup_trigger": [
                 "贵",
                 "偏高",
@@ -16,7 +17,7 @@
         },
         {
             "name": "product_availability",
-            "question": "你想买的商品经常能买到吗？",
+            "question": "你在{shop_name}想买的商品经常能买到吗？",
             "followup_trigger": [
                 "缺货",
                 "没有",
@@ -27,7 +28,7 @@
         },
         {
             "name": "service_attitude",
-            "question": "店员服务态度如何？",
+            "question": "{shop_name}店员服务态度如何？",
             "followup_trigger": [
                 "不好",
                 "冷漠",

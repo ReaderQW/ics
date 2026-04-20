@@ -1,0 +1,82 @@
+{
+  "session_id": "29e29a52",
+  "scenario_type": "canteen",
+  "shop_name": "一食堂",
+  "start_time": "2026-04-20T20:18:29.675175",
+  "end_time": null,
+  "state": "asking",
+  "current_slot_index": 0,
+  "slots_collected": {},
+  "conversation_history": [
+    {
+      "role": "assistant",
+      "content": "同学你好！我是校园消费调研助手，想了解一下你对一食堂的用餐体验～"
+    },
+    {
+      "role": "assistant",
+      "content": "你觉得一食堂的价格怎么样？"
+    },
+    {
+      "role": "user",
+      "content": "你是谁"
+    },
+    {
+      "role": "assistant",
+      "content": "我是访谈助手，想了解您对一食堂价格的看法，可以分享一下吗？\n\n你觉得一食堂的价格怎么样？"
+    },
+    {
+      "role": "user",
+      "content": "一食堂是哪个食堂，我不太知道这些食堂的名字"
+    },
+    {
+      "role": "assistant",
+      "content": "一食堂就是学校东门旁边那个食堂，你觉得那里的价格怎么样？\n\n你觉得一食堂的价格怎么样？"
+    },
+    {
+      "role": "user",
+      "content": "还可以吧，能接受"
+    },
+    {
+      "role": "assistant",
+      "content": "回答相关但过于笼统，未提及具体价格感受，可以再具体一点吗？\n\n你觉得一食堂的价格怎么样？"
+    },
+    {
+      "role": "user",
+      "content": "其实有点贵"
+    },
+    {
+      "role": "assistant",
+      "content": "回答相关但不够充分，触发追问词，可以再具体一点吗？\n\n你觉得一食堂的价格怎么样？"
+    },
+    {
+      "role": "user",
+      "content": "太贵了"
+    },
+    {
+      "role": "assistant",
+      "content": "回答相关但过于简短，未提供具体细节，可以再具体一点吗？\n\n你觉得一食堂的价格怎么样？"
+    },
+    {
+      "role": "user",
+      "content": "太贵了我说太贵了你听不懂吗"
+    },
+    {
+      "role": "assistant",
+      "content": "回答相关但情绪化，未提供具体细节或比较，可以再具体一点吗？\n\n你觉得一食堂的价格怎么样？"
+    },
+    {
+      "role": "user",
+      "content": "一食堂价格比较贵，二食堂就相对而言便宜一些，尤其是自选菜窗口，明显高于市场价"
+    },
+    {
+      "role": "assistant",
+      "content": "回答包含触发词'贵'，但未详细说明一食堂具体价格情况，可以再具体一点吗？\n\n你觉得一食堂的价格怎么样？"
+    }
+  ],
+  "confirmation_summary": null,
+  "awaiting_correction": false,
+  "correction_notes": [],
+  "invalid_input_count": 0,
+  "report_id": null,
+  "is_complete": false
+}

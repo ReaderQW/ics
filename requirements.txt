@@ -6,3 +6,4 @@ pandas>=2.0.0
 markdown>=3.4.0
 reportlab>=4.0.0           # PDF导出
 python-docx>=1.0.0         # Word导出
+qrcode[pil]>=7.4.2         # 访谈链接二维码生成
